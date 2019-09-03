@@ -10,6 +10,18 @@ import {
   VictoryTooltip,
   VictoryAxis,
 } from 'victory';
+import {
+  PieChart,
+  Pie,
+  ResponsiveContainer,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from 'recharts';
 import { Constants, Table, StateListWrapper } from 'common';
 import { I18n } from '@kineticdata/react';
 import moment from 'moment';
@@ -51,42 +63,36 @@ const Appointments = ({ appointments }) => (
             </div>
           )}
         />
-        <VictoryContainer
-          className="VictoryContainer max-height-250"
-          height={250}
-          width={250}
-          style={{ height: 'auto' }}
-        >
-          {' '}
-          <VictoryPie
-            standalone={false}
-            colorScale={[Constants.COLORS.blueSky, Constants.COLORS.sunflower]}
-            height={250}
-            width={250}
-            radius={100}
-            innerRadius={62}
-            labels={() => null}
-            data={[{ y: appointments.scheduled }, { y: appointments.walkins }]}
-          />
-          <VictoryPie
-            standalone={false}
-            colorScale={[
-              Constants.COLORS.blueLake,
-              'whitesmoke',
-              'transparent',
-            ]}
-            height={250}
-            width={250}
-            radius={55}
-            innerRadius={42}
-            labels={() => null}
-            data={[
-              { y: appointments.sameDay },
-              { y: appointments.scheduled - appointments.sameDay },
-              { y: appointments.walkins },
-            ]}
-          />
-        </VictoryContainer>
+        <div style={{ width: '100%', height: 250 }}>
+          <ResponsiveContainer>
+            <PieChart style={{ margin: 'auto' }}>
+              <Pie innerRadius="62%" outerRadius="100%" dataKey="value">
+                <Cell
+                  key={`cell-Scheduled`}
+                  value={appointments.scheduled}
+                  fill={Constants.COLORS.blueSky}
+                />
+                <Cell
+                  key={`cell-Walkins`}
+                  value={appointments.walkins}
+                  fill={Constants.COLORS.sunflower}
+                />
+              </Pie>
+              <Pie outerRadius="55%" innerRadius="35%" dataKey="value">
+                <Cell
+                  key={`cell-SameDay`}
+                  value={appointments.sameDay}
+                  fill={Constants.COLORS.blueLake}
+                />
+                <Cell
+                  key={`cell-Total`}
+                  value={appointments.total - appointments.sameDay}
+                  fill="whitesmoke"
+                />
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
         <div className="text-center">
           <div>
             <span
@@ -138,23 +144,24 @@ const Feedback = ({ feedback }) => (
             </div>
           )}
         />
-        <VictoryPie
-          containerComponent={
-            <VictoryContainer
-              className="VictoryContainer max-height-250"
-              height={250}
-              width={250}
-              style={{ height: 'auto' }}
-            />
-          }
-          colorScale={[Constants.COLORS.green, Constants.COLORS.red]}
-          height={250}
-          width={250}
-          radius={100}
-          innerRadius={62}
-          labels={() => null}
-          data={[{ y: feedback.positive }, { y: feedback.negative }]}
-        />
+        <div style={{ width: '100%', height: 250 }}>
+          <ResponsiveContainer>
+            <PieChart style={{ margin: 'auto' }}>
+              <Pie innerRadius="62%" outerRadius="100%" dataKey="value">
+                <Cell
+                  key={`cell-Scheduled`}
+                  value={feedback.positive}
+                  fill={Constants.COLORS.green}
+                />
+                <Cell
+                  key={`cell-Walkins`}
+                  value={feedback.negative}
+                  fill={Constants.COLORS.red}
+                />
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </Fragment>
     ) : (
       <div className="text-center">
@@ -191,40 +198,36 @@ const Utilization = ({ utilization }) => (
             <I18n>Actual</I18n>
           </div>
         </div>
-        <VictoryContainer
-          className="VictoryContainer max-height-250"
-          height={250}
-          width={250}
-          style={{ height: 'auto' }}
-        >
-          }
-          <VictoryPie
-            standalone={false}
-            colorScale={[Constants.COLORS.greenGrass, 'whitesmoke']}
-            height={250}
-            width={250}
-            radius={100}
-            innerRadius={62}
-            labels={() => null}
-            data={[
-              { y: utilization.actual },
-              { y: utilization.available - utilization.actual },
-            ]}
-          />
-          <VictoryPie
-            standalone={false}
-            colorScale={[Constants.COLORS.blueSky, 'whitesmoke']}
-            height={250}
-            width={250}
-            radius={55}
-            innerRadius={17}
-            labels={() => null}
-            data={[
-              { y: utilization.scheduled },
-              { y: utilization.available - utilization.scheduled },
-            ]}
-          />
-        </VictoryContainer>
+        <div style={{ width: '100%', height: 250 }}>
+          <ResponsiveContainer>
+            <PieChart style={{ margin: 'auto' }}>
+              <Pie innerRadius="62%" outerRadius="100%" dataKey="value">
+                <Cell
+                  key={`cell-Scheduled`}
+                  value={utilization.actual}
+                  fill={Constants.COLORS.greenGrass}
+                />
+                <Cell
+                  key={`cell-Walkins`}
+                  value={utilization.available - utilization.actual}
+                  fill="whitesmoke"
+                />
+              </Pie>
+              <Pie outerRadius="55%" innerRadius="35%" dataKey="value">
+                <Cell
+                  key={`cell-SameDay`}
+                  value={utilization.scheduled}
+                  fill={Constants.COLORS.blueSky}
+                />
+                <Cell
+                  key={`cell-Total`}
+                  value={utilization.available - utilization.scheduled}
+                  fill="whitesmoke"
+                />
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </Fragment>
     ) : (
       <div className="text-center">
@@ -245,6 +248,67 @@ const TimeOfVisit = ({ timeOfVisit }) => {
     d[toInt(hour)] = timeOfVisit.walkins[hour];
     return d;
   }, Array(24).fill(0));
+
+  const mergeByTime = (a1, a2) =>
+    a1.map(itm => ({
+      ...a2.find(item => item.time === itm.time && item),
+      ...itm,
+    }));
+
+  const renderLegend = props => {
+    const { payload } = props;
+    return (
+      <div className="text-center" style={{ width: '100%' }}>
+        {payload.map((entry, index) => (
+          <div key={`item-${index}`} style={{ display: 'inline-block' }}>
+            <span
+              style={{ color: entry.color }}
+              className="fa fa-square fa-fw"
+            />
+            {entry.value}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const percentChange = (x, y) => (x - y + y) * 100;
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active) {
+      return (
+        <div
+          style={{
+            background: 'white',
+            width: '50',
+            border: '.1rem dashed gray',
+            padding: '.5rem',
+          }}
+        >
+          <div className="label">{label}</div>
+          <div className="intro">{`${payload[0].name} : ${
+            payload[0].value
+          }`}</div>
+          <div className="intro">{`${payload[1].name} : ${
+            payload[1].value
+          }`}</div>
+          <div>
+            {payload[0].value > payload[1].value
+              ? `There were ${percentChange(
+                  payload[0].value,
+                  payload[1].value,
+                )}% more ${payload[0].name} than ${payload[1].name}`
+              : `There were ${percentChange(
+                  payload[1].value,
+                  payload[0].value,
+                )}% more ${payload[1].name} than ${payload[0].name}`}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
   return (
     <Fragment>
       <div className="section__title">
@@ -255,88 +319,49 @@ const TimeOfVisit = ({ timeOfVisit }) => {
         <Fragment>
           <I18n
             render={translate => (
-              <VictoryChart
-                containerComponent={
-                  <VictoryContainer
-                    className="VictoryContainer max-height-350"
-                    style={{ height: 'auto' }}
-                    zoomDimension="x"
-                  />
-                }
-                width={900}
-                height={350}
-                domainPadding={14}
-              >
-                <VictoryGroup
-                  colorScale={[
-                    Constants.COLORS.blueSky,
-                    Constants.COLORS.sunflower,
-                  ]}
-                  offset={14}
-                  labelComponent={<VictoryTooltip />}
-                >
-                  <VictoryBar
-                    barWidth={14}
-                    data={scheduledData.map((count, index) => ({
-                      x: moment(index, 'H').format('LT'),
-                      y: count,
-                      label: d => `${d.x}: ${d.y} ${translate('Scheduled')}`,
-                    }))}
-                  />
-                  <VictoryBar
-                    barWidth={14}
-                    data={walkinsData.map((count, index) => ({
-                      x: moment(index, 'H').format('LT'),
-                      y: count,
-                      label: d =>
-                        `${d.x}: ${d.y} ${
-                          d.y !== 1
-                            ? translate('Walk-Ins')
-                            : translate('Walk-In')
-                        }`,
-                    }))}
-                  />
-                </VictoryGroup>
-                <VictoryAxis
-                  style={{
-                    tickLabels: {
-                      angle: 45,
-                      verticalAnchor: 'middle',
-                      textAnchor: 'start',
-                      padding: 5,
-                      fontSize: 14,
-                    },
-                  }}
-                />
-                <VictoryAxis
-                  dependentAxis
-                  style={{
-                    tickLabels: {
-                      padding: 5,
-                      fontSize: 14,
-                    },
-                    ticks: { stroke: Constants.COLORS.black, size: 5 },
-                  }}
-                />
-              </VictoryChart>
+              <Fragment>
+                <div style={{ width: '100%', height: 350 }}>
+                  <ResponsiveContainer>
+                    <BarChart
+                      data={mergeByTime(
+                        scheduledData.map((count, index) => ({
+                          time: moment(index, 'H').format('LT'),
+                          Scheduled: count,
+                          label: d =>
+                            `${d.time}: ${d.scheduled} ${translate(
+                              'Scheduled',
+                            )}`,
+                        })),
+                        walkinsData.map((count, index) => ({
+                          time: moment(index, 'H').format('LT'),
+                          'Walk-Ins': count,
+                          label: d =>
+                            `${d.time}: ${d.walkins} ${
+                              d.z !== 1
+                                ? translate('Walk-Ins')
+                                : translate('Walk-In')
+                            }`,
+                        })),
+                      )}
+                    >
+                      <XAxis dataKey="time" />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend content={renderLegend} />
+                      <Bar
+                        dataKey="Scheduled"
+                        fill={Constants.COLORS.blueSky}
+                      />
+                      <Bar
+                        dataKey="Walk-Ins"
+                        fill={Constants.COLORS.sunflower}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Fragment>
             )}
           />
-          <div className="text-center">
-            <div>
-              <span
-                className="fa fa-square fa-fw"
-                style={{ color: Constants.COLORS.blueSky }}
-              />
-              <I18n>Scheduled</I18n>
-            </div>
-            <div>
-              <span
-                className="fa fa-square fa-fw"
-                style={{ color: Constants.COLORS.sunflower }}
-              />
-              <I18n>Walk-Ins</I18n>
-            </div>
-          </div>
         </Fragment>
       ) : (
         <div className="text-center">
